@@ -34,11 +34,13 @@ print('Source files unzipped')
 ## Step 1 - Merging training and test data
 print('Step 1 - Merging training and test data')
 ## Loading training data set
-training_set <- read.fwf('./UCI HAR Dataset/train/X_train.txt', header = FALSE, widths = replicate(561, 16)) 
+##training_set <- read.fwf('./UCI HAR Dataset/train/X_train.txt', header = FALSE, widths = replicate(561, 16)) 
+training_set <- read.table("./UCI HAR Dataset/train/x_train.txt")
 training_set <- tibble::as_tibble(training_set)
 print('Traning data set loaded')
 ## Loading test data set
-test_set <- read.fwf('./UCI HAR Dataset/test/X_test.txt', header = FALSE, widths = replicate(561, 16)) 
+##test_set <- read.fwf('./UCI HAR Dataset/test/X_test.txt', header = FALSE, widths = replicate(561, 16)) 
+test_set <- read.table("./UCI HAR Dataset/test/X_test.txt")
 test_set <- tibble::as_tibble(test_set)
 print('Test data set loaded')
 ## Adding source column to training and test data sets
@@ -52,11 +54,13 @@ rm(test_set)
 rm(training_set)
 print('Original training and test sets removed')
 ## Loading training subjects set
-training_subject <- read.csv('./UCI HAR Dataset/train/subject_train.txt', header = FALSE)
+##training_subject <- read.csv('./UCI HAR Dataset/train/subject_train.txt', header = FALSE)
+training_subject <- read.table("./UCI HAR Dataset/train/subject_train.txt")
 training_subject <- tibble::as_tibble(training_subject)
 print('Traning subjects set loaded')
 ## Loading test subjects set
-test_subject <- read.csv('./UCI HAR Dataset/test/subject_test.txt', header = FALSE)
+##test_subject <- read.csv('./UCI HAR Dataset/test/subject_test.txt', header = FALSE)
+test_subject <- read.table('./UCI HAR Dataset/test/subject_test.txt')
 test_subject <- tibble::as_tibble(test_subject)
 print('Test subjects set loaded')
 ## Merging training and test subjects sets
@@ -66,11 +70,13 @@ rm(test_subject)
 rm(training_subject)
 print('Training and test subjects sets removed')
 ## Loading training data set labels
-training_labels <- read.csv('./UCI HAR Dataset/train/y_train.txt', header = FALSE)
+##training_labels <- read.csv('./UCI HAR Dataset/train/y_train.txt', header = FALSE)
+training_labels <- read.table('./UCI HAR Dataset/train/y_train.txt')
 training_labels <- tibble::as_tibble(training_labels)
 print('Traning labels loaded')
 ## Loading test data set labels
-test_labels <- read.csv('./UCI HAR Dataset/test/y_test.txt', header = FALSE)
+##test_labels <- read.csv('./UCI HAR Dataset/test/y_test.txt', header = FALSE)
+test_labels <- read.table('./UCI HAR Dataset/test/y_test.txt')
 test_labels <- tibble::as_tibble(test_labels)
 print('Test labels loaded')
 ## Merging training and test label sets
@@ -129,22 +135,26 @@ summary_tidy_set <- tibble::as_tibble()
 subjects <- unique(tidy_data_set$subject)
 activities <- unique(tidy_data_set$activity)
 ## Looping through each subject and activity to obtain the average of all columns
-for(i in 1:length(subjects)) {
-       for(j in 1:length(activities)) {
-               ## Creating a subset of tidy data set for the specific subject/activity combination 
-               values <- filter(tidy_data_set, subject == subjects[i] & activity == activities[j])
-               values <- select(values, -c('subject', 'activity', 'source'))
-               ## Applying mean function to all columns of subset
-               mean_vector <- sapply(values, mean)
-               summary_tidy_set <- rbind(summary_tidy_set, c(subject = subjects[i], activity = activities[j], mean_vector))
-               
-       }
-}
+##for(i in 1:length(subjects)) {
+##       for(j in 1:length(activities)) {
+##               ## Creating a subset of tidy data set for the specific subject/activity combination 
+##               values <- filter(tidy_data_set, subject == subjects[i] & activity == activities[j])
+##               values <- select(values, -c('subject', 'activity', 'source'))
+##               ## Applying mean function to all columns of subset
+##               mean_vector <- sapply(values, mean)
+##               summary_tidy_set <- rbind(summary_tidy_set, c(subject = subjects[i], activity = activities[j], mean_vector))
+##               
+##       }
+##}
+summary_tidy_set <- tidy_data_set %>% 
+        select(-source) %>%
+        group_by(subject, activity) %>%
+        summarise_all(mean)
 ## Renaming resulting summary tidy data set columns
 custom_column_names <- paste0('mean(', tolower(variables_extract$V2), ')')
 names(summary_tidy_set) <- c('subject', 'activity', custom_column_names)
 print('Summary tidy data set created')
-rm(activity_labels, activities, subjects, set_variable_names, merged_labels, merged_subject, values)
+rm(activity_labels, activities, subjects, set_variable_names, merged_labels, merged_subject)
 print('Temporary objects removed')
 ## Saving summary tidy data set as text file as per instructions
 summary_tidy_set$subject <- as.numeric(summary_tidy_set$subject)
